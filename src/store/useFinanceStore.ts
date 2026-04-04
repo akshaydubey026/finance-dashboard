@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Transaction, Filters, Role } from '../types';
+import type { Transaction, Filters, Role, SortOption } from '../types';
 
 interface FinanceState {
   transactions: Transaction[];
@@ -10,6 +10,7 @@ interface FinanceState {
   budget: number;
   isLoading: boolean;
   error: string | null;
+  sortBy: SortOption;
   addTransaction: (tx: Omit<Transaction, 'id'>) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
   updateTransaction: (id: string, tx: Partial<Transaction>) => Promise<void>;
@@ -18,6 +19,7 @@ interface FinanceState {
   setBudget: (budget: number) => void;
   toggleTheme: () => void;
   clearError: () => void;
+  setSortBy: (sortBy: SortOption) => void;
 }
 
 const generateMockData = (): Transaction[] => {
@@ -40,6 +42,7 @@ export const useFinanceStore = create<FinanceState>()(
       budget: 5000,
       isLoading: false,
       error: null,
+      sortBy: 'date_desc',
       addTransaction: async (tx) => {
         set({ isLoading: true, error: null });
         try {
@@ -81,7 +84,8 @@ export const useFinanceStore = create<FinanceState>()(
       setRole: (role) => set({ role }),
       setBudget: (budget) => set({ budget }),
       toggleTheme: () => set((state) => ({ theme: state.theme === 'light' ? 'dark' : 'light' })),
-      clearError: () => set({ error: null })
+      clearError: () => set({ error: null }),
+      setSortBy: (sortBy) => set({ sortBy })
     }),
     { 
       name: 'finance-storage',
@@ -90,7 +94,8 @@ export const useFinanceStore = create<FinanceState>()(
         filters: state.filters, 
         role: state.role, 
         theme: state.theme, 
-        budget: state.budget 
+        budget: state.budget,
+        sortBy: state.sortBy
       })
     }
   )

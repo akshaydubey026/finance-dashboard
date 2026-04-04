@@ -22,9 +22,7 @@ const getCategoryIcon = (category: string) => {
 };
 
 export const TransactionTable = () => {
-  const { transactions, filters, setFilters, role, deleteTransaction, isLoading } = useFinanceStore();
-  const [sortField, setSortField] = useState<'date' | 'amount'>('date');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const { transactions, filters, setFilters, role, deleteTransaction, isLoading, sortBy, setSortBy } = useFinanceStore();
   const [isGrouped, setIsGrouped] = useState(false);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -52,15 +50,15 @@ export const TransactionTable = () => {
       .filter(t => (filters.category === 'all' ? true : t.category.toLowerCase().includes(filters.category.toLowerCase())))
       .filter(t => (t.description.toLowerCase().includes(filters.search.toLowerCase()) || t.category.toLowerCase().includes(filters.search.toLowerCase())))
       .sort((a, b) => {
-        if (sortField === 'date') {
-          return sortOrder === 'desc' 
-            ? new Date(b.date).getTime() - new Date(a.date).getTime()
-            : new Date(a.date).getTime() - new Date(b.date).getTime();
-        } else {
-          return sortOrder === 'desc' ? b.amount - a.amount : a.amount - b.amount;
+        switch (sortBy) {
+          case 'date_desc': return new Date(b.date).getTime() - new Date(a.date).getTime();
+          case 'date_asc': return new Date(a.date).getTime() - new Date(b.date).getTime();
+          case 'amount_desc': return b.amount - a.amount;
+          case 'amount_asc': return a.amount - b.amount;
+          default: return 0;
         }
       });
-  }, [transactions, filters, sortField, sortOrder]);
+  }, [transactions, filters, sortBy]);
 
   const allCategories = useMemo(() => Array.from(new Set(transactions.map(t => t.category))), [transactions]);
 
@@ -105,6 +103,17 @@ export const TransactionTable = () => {
                 <option value="expense">Expense</option>
               </select>
               
+              <select
+                className="w-full sm:w-auto bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-teal-500/50 shadow-sm dark:shadow-none transition-all duration-200 hover:border-zinc-300 dark:hover:border-zinc-700"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+              >
+                <option value="date_desc">Sort: Newest First</option>
+                <option value="date_asc">Sort: Oldest First</option>
+                <option value="amount_desc">Sort: High → Low</option>
+                <option value="amount_asc">Sort: Low → High</option>
+              </select>
+
               <select
                 className="w-full sm:w-auto bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-teal-500/50 shadow-sm dark:shadow-none"
                 value={filters.category}
@@ -177,12 +186,10 @@ export const TransactionTable = () => {
             <tr>
               <th className="px-6 py-4 font-medium pl-8">{isGrouped ? 'Category' : 'Transaction'}</th>
               {!isGrouped && (
-                <th className="px-6 py-4 font-medium cursor-pointer hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors" onClick={() => { setSortField('date'); setSortOrder(s => s === 'asc' ? 'desc' : 'asc') }}>
-                  <span className="flex items-center gap-1">Date {sortField === 'date' && (sortOrder === 'desc' ? '↓' : '↑')}</span>
-                </th>
+                <th className="px-6 py-4 font-medium">Date</th>
               )}
-              <th className="px-6 py-4 font-medium cursor-pointer hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors" onClick={() => { setSortField('amount'); setSortOrder(s => s === 'asc' ? 'desc' : 'asc') }}>
-                <span className="flex items-center gap-1">{isGrouped ? 'Total Amount' : 'Amount'} {sortField === 'amount' && (sortOrder === 'desc' ? '↓' : '↑')}</span>
+              <th className="px-6 py-4 font-medium">
+                {isGrouped ? 'Total Amount' : 'Amount'}
               </th>
               {!isGrouped && <th className="px-6 py-4 font-medium pr-8">Actions</th>}
               {isGrouped && <th className="px-6 py-4 font-medium pr-8">Transactions</th>}

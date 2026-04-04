@@ -17,3 +17,5 @@ export interface Filters {
   search: string;
   timeRange: 'all' | 'today' | 'week' | 'month';
 }
+
+export type SortOption = 'date_desc' | 'date_asc' | 'amount_desc' | 'amount_asc';

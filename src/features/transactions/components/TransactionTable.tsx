@@ -171,21 +171,21 @@ export const TransactionTable = () => {
           </div>
         </div>
 
-      <div className="overflow-x-auto w-full min-h-[50vh]">
-        <table className="w-full text-left text-base whitespace-nowrap">
-          <thead className="bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md text-zinc-500 dark:text-zinc-400 border-b border-zinc-200 dark:border-zinc-800 sticky top-0 z-10 transition-colors">
+      <div className="overflow-auto w-full max-h-[calc(100vh-280px)]">
+        <table className="w-full text-left text-sm whitespace-nowrap">
+          <thead className="bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md text-zinc-500 dark:text-zinc-400 border-b border-zinc-200 dark:border-zinc-800 sticky top-0 z-20 transition-colors">
             <tr>
-              <th className="px-6 py-5 font-medium pl-8">{isGrouped ? 'Category' : 'Transaction'}</th>
+              <th className="px-6 py-4 font-medium pl-8">{isGrouped ? 'Category' : 'Transaction'}</th>
               {!isGrouped && (
-                <th className="px-6 py-5 font-medium cursor-pointer hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors" onClick={() => { setSortField('date'); setSortOrder(s => s === 'asc' ? 'desc' : 'asc') }}>
+                <th className="px-6 py-4 font-medium cursor-pointer hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors" onClick={() => { setSortField('date'); setSortOrder(s => s === 'asc' ? 'desc' : 'asc') }}>
                   <span className="flex items-center gap-1">Date {sortField === 'date' && (sortOrder === 'desc' ? '↓' : '↑')}</span>
                 </th>
               )}
-              <th className="px-6 py-5 font-medium cursor-pointer hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors" onClick={() => { setSortField('amount'); setSortOrder(s => s === 'asc' ? 'desc' : 'asc') }}>
+              <th className="px-6 py-4 font-medium cursor-pointer hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors" onClick={() => { setSortField('amount'); setSortOrder(s => s === 'asc' ? 'desc' : 'asc') }}>
                 <span className="flex items-center gap-1">{isGrouped ? 'Total Amount' : 'Amount'} {sortField === 'amount' && (sortOrder === 'desc' ? '↓' : '↑')}</span>
               </th>
-              {!isGrouped && <th className="px-6 py-5 font-medium pr-8">Actions</th>}
-              {isGrouped && <th className="px-6 py-5 font-medium pr-8">Transactions</th>}
+              {!isGrouped && <th className="px-6 py-4 font-medium pr-8">Actions</th>}
+              {isGrouped && <th className="px-6 py-4 font-medium pr-8">Transactions</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50 bg-white dark:bg-zinc-900/30">
@@ -203,20 +203,20 @@ export const TransactionTable = () => {
                       key={group.category}
                       className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition-colors group"
                     >
-                      <td className="px-6 py-5 pl-8">
+                      <td className="px-6 py-4 pl-8">
                         <div className="flex items-center gap-3">
-                          <div className={`p-3 rounded-xl border ${group.type === 'income' ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-500 border-green-200 dark:border-green-500/20' : 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-500 border-red-200 dark:border-red-500/20'}`}>
+                          <div className={`p-2.5 rounded-xl border ${group.type === 'income' ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-500 border-green-200 dark:border-green-500/20' : 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-500 border-red-200 dark:border-red-500/20'}`}>
                             {getCategoryIcon(group.category)}
                           </div>
-                          <span className="font-medium text-lg text-zinc-900 dark:text-zinc-100">{group.category}</span>
+                          <span className="font-medium text-zinc-900 dark:text-zinc-100">{group.category}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-5">
-                        <Badge variant={group.type === 'income' ? 'success' : 'danger'} className="inline-flex items-center gap-1 w-fit text-sm py-1 px-3">
+                      <td className="px-6 py-4">
+                        <Badge variant={group.type === 'income' ? 'success' : 'danger'} className="inline-flex items-center gap-1 w-fit">
                           $ {group.amount.toLocaleString()}
                         </Badge>
                       </td>
-                      <td className="px-6 py-5 pr-8 text-zinc-500 dark:text-zinc-400 text-base">
+                      <td className="px-6 py-4 pr-8 text-zinc-500 dark:text-zinc-400 text-sm">
                         {group.count} item{group.count !== 1 ? 's' : ''}
                       </td>
                     </motion.tr>
@@ -238,27 +238,27 @@ export const TransactionTable = () => {
                     key={tx.id}
                     className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition-colors group"
                   >
-                    <td className="px-6 py-5 pl-8">
-                      <div className="flex items-center gap-4">
-                        <div className={`p-3 rounded-xl border ${tx.type === 'income' ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-500 border-green-200 dark:border-green-500/20' : 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-500 border-red-200 dark:border-red-500/20'}`}>
+                    <td className="px-6 py-4 pl-8">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2.5 rounded-xl border ${tx.type === 'income' ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-500 border-green-200 dark:border-green-500/20' : 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-500 border-red-200 dark:border-red-500/20'}`}>
                           {getCategoryIcon(tx.category)}
                         </div>
                         <div>
-                          <p className="font-medium text-lg text-zinc-900 dark:text-zinc-100">{tx.description}</p>
-                          <p className="text-sm text-zinc-500 mt-0.5">{tx.category}</p>
+                          <p className="font-medium text-zinc-900 dark:text-zinc-100">{tx.description}</p>
+                          <p className="text-xs text-zinc-500 mt-0.5">{tx.category}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-5 text-zinc-500 dark:text-zinc-400">
+                    <td className="px-6 py-4 text-zinc-500 dark:text-zinc-400">
                       {format(parseISO(tx.date), 'MMM dd, yyyy')}
                     </td>
-                    <td className="px-6 py-5">
-                      <Badge variant={tx.type === 'income' ? 'success' : 'danger'} className="inline-flex items-center gap-1 w-fit text-sm py-1 px-3">
-                        {tx.type === 'income' ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                    <td className="px-6 py-4">
+                      <Badge variant={tx.type === 'income' ? 'success' : 'danger'} className="inline-flex items-center gap-1 w-fit">
+                        {tx.type === 'income' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                         $ {tx.amount.toLocaleString()}
                       </Badge>
                     </td>
-                    <td className="px-6 py-5 pr-8">
+                    <td className="px-6 py-4 pr-8">
                       <div className="flex items-center gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                         {role === 'Admin' ? (
                           <>

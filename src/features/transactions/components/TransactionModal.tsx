@@ -13,7 +13,7 @@ interface TransactionModalProps {
 }
 
 export const TransactionModal = ({ isOpen, onClose, transactionToEdit }: TransactionModalProps) => {
-  const { transactions, addTransaction, updateTransaction } = useFinanceStore();
+  const { transactions, addTransaction, updateTransaction, isLoading } = useFinanceStore();
 
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
@@ -42,7 +42,7 @@ export const TransactionModal = ({ isOpen, onClose, transactionToEdit }: Transac
     }
   }, [isOpen, transactionToEdit, transactions]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!description || !amount || !category || !date) return;
 
@@ -55,11 +55,14 @@ export const TransactionModal = ({ isOpen, onClose, transactionToEdit }: Transac
     };
 
     if (transactionToEdit) {
-      updateTransaction(transactionToEdit, payload);
+      await updateTransaction(transactionToEdit, payload);
     } else {
-      addTransaction(payload);
+      await addTransaction(payload);
     }
-    onClose();
+    
+    if (!useFinanceStore.getState().error) {
+       onClose();
+    }
   };
 
   const modalContent = (
@@ -167,9 +170,9 @@ export const TransactionModal = ({ isOpen, onClose, transactionToEdit }: Transac
               </div>
 
               <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-3 mt-6">
-                <Button variant="ghost" onClick={onClose} type="button">Cancel</Button>
-                <Button variant="primary" type="submit">
-                  {transactionToEdit ? 'Update Transaction' : 'Add Transaction'}
+                <Button variant="ghost" onClick={onClose} type="button" disabled={isLoading}>Cancel</Button>
+                <Button variant="primary" type="submit" disabled={isLoading}>
+                  {isLoading ? 'Saving...' : (transactionToEdit ? 'Update Transaction' : 'Add Transaction')}
                 </Button>
               </div>
             </form>

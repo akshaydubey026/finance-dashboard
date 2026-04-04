@@ -2,6 +2,13 @@
 
 A premium, production-ready Finance Dashboard built with **React, TypeScript, and Tailwind CSS**. This project demonstrates clean architecture, scalable state management, and thoughtful UI/UX inspired by modern fintech applications.
 
+## 📸 Screenshots
+
+![Dashboard Overview](screenshots/dashboard.png)
+![Transaction Management](screenshots/transactions.png)
+![Add Transaction Modal](screenshots/modal.png)
+![Smart Insights](screenshots/insights.png)
+
 ## 🚀 Overview
 
 The goal of this project was to build a visually engaging, intuitive, and responsive dashboard that doesn't just look good, but is structured like a real-world enterprise application. Instead of over-engineering with complex abstractions, the focus is on a scalable, feature-based modular structure that can be easily extended.
@@ -45,7 +52,11 @@ src/
    - Sticky headers, colored status badges, category icons, and meaningful empty states.
 3. **Smart Insights**
    - Visual cards automatically calculated based on the data, highlighting spending increases, top categories, and savings rates.
-4. **Role-Based Simulation (Auth UI)**
+4. **Data Management**
+   - Robust persistent local-storage integration configured via Zustand.
+   - Built-in Mock API handling showcasing async latency UX and Skeleton Loaders.
+   - 1-Click native JSON / CSV data exports on filtered categories.
+5. **Role-Based Simulation (Auth UI)**
    - Header toggle to switch between `Admin` and `Viewer` modes.
    - Viewers see conditional UI: edit/delete actions are disabled contextually with helpful tooltips ("Only admins can modify transactions") rather than just hiding the elements abruptly.
 
@@ -59,7 +70,7 @@ src/
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/yourusername/finance-dashboard.git
+git clone https://github.com/akshaydubey026/finance-dashboard.git
 cd finance-dashboard
 
 # 2. Install dependencies
@@ -75,8 +86,7 @@ Visit `http://localhost:5173` to view the application.
 
 - Link to real backend APIs (e.g., Node.js/Express with PostgreSQL).
 - Implement Plaid API integration for automatic bank transaction syncing.
-- Add light mode support (structure already allows custom CSS variable injection).
-- Implement CSV export for transactions.
+- Containerize the frontend with Docker for CI/CD.
 
 ---
-*Built with ❤️ focusing on clean architecture and premium UI/UX.*
+*Built with ❤️ Akshay*

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { Toast } from '../ui/Toast';
 
 export const MainLayout = ({ children }: { children: ReactNode }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -17,6 +18,7 @@ export const MainLayout = ({ children }: { children: ReactNode }) => {
           </div>
         </main>
       </div>
+      <Toast />
     </div>
   );
 };

@@ -6,8 +6,10 @@ import { Card } from '../../../components/ui/Card';
 import { Tooltip } from '../../../components/ui/Tooltip';
 import { TransactionModal } from './TransactionModal';
 import { format, parseISO, isToday, isThisWeek, isSameMonth } from 'date-fns';
-import { ArrowDownRight, ArrowUpRight, Search, Trash2, Edit2, Coffee, Home, Bus, DollarSign, Briefcase } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, Search, Trash2, Edit2, Coffee, Home, Bus, DollarSign, Briefcase, Download, Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { downloadCSV, downloadJSON } from '../utils/export';
+import { TableSkeleton } from './TableSkeleton';
 
 const getCategoryIcon = (category: string) => {
   switch (category.toLowerCase()) {
@@ -20,9 +22,10 @@ const getCategoryIcon = (category: string) => {
 };
 
 export const TransactionTable = () => {
-  const { transactions, filters, setFilters, role, deleteTransaction } = useFinanceStore();
+  const { transactions, filters, setFilters, role, deleteTransaction, isLoading } = useFinanceStore();
   const [sortField, setSortField] = useState<'date' | 'amount'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [isGrouped, setIsGrouped] = useState(false);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [txToEdit, setTxToEdit] = useState<string | null>(null);
@@ -59,6 +62,23 @@ export const TransactionTable = () => {
       });
   }, [transactions, filters, sortField, sortOrder]);
 
+  const allCategories = useMemo(() => Array.from(new Set(transactions.map(t => t.category))), [transactions]);
+
+  const groupedData = useMemo(() => {
+    if (!isGrouped) return [];
+    
+    const groups = filteredTransactions.reduce((acc, t) => {
+      if (!acc[t.category]) {
+        acc[t.category] = { category: t.category, count: 0, amount: 0, type: t.type };
+      }
+      acc[t.category].count += 1;
+      acc[t.category].amount += t.amount;
+      return acc;
+    }, {} as Record<string, { category: string, count: number, amount: number, type: string }>);
+    
+    return Object.values(groups).sort((a, b) => b.amount - a.amount);
+  }, [filteredTransactions, isGrouped]);
+
   return (
     <>
       <Card className="p-0 overflow-hidden border border-zinc-200 dark:border-zinc-800">
@@ -84,6 +104,37 @@ export const TransactionTable = () => {
                 <option value="income">Income</option>
                 <option value="expense">Expense</option>
               </select>
+              
+              <select
+                className="w-full sm:w-auto bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-teal-500/50 shadow-sm dark:shadow-none"
+                value={filters.category}
+                onChange={(e) => setFilters({ category: e.target.value })}
+              >
+                <option value="all">All Categories</option>
+                {allCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+              </select>
+
+              <Button 
+                variant={isGrouped ? 'secondary' : 'ghost'} 
+                size="sm" 
+                onClick={() => setIsGrouped(!isGrouped)}
+                className={`w-full sm:w-auto border ${isGrouped ? 'border-teal-500/30 bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400' : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950'} shadow-sm`}
+              >
+                <Layers className="w-4 h-4 mr-2" />
+                Group
+              </Button>
+
+              <div className="flex gap-2 w-full sm:w-auto">
+                 <Button variant="ghost" size="sm" onClick={() => downloadCSV(filteredTransactions)} className="flex-1 sm:flex-none border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-sm text-zinc-600 dark:text-zinc-300">
+                   <Download className="w-4 h-4 mr-2" />
+                   <span>CSV</span>
+                 </Button>
+                 <Button variant="ghost" size="sm" onClick={() => downloadJSON(filteredTransactions)} className="flex-1 sm:flex-none border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-sm text-zinc-600 dark:text-zinc-300">
+                   <Download className="w-4 h-4 mr-2" />
+                   <span>JSON</span>
+                 </Button>
+              </div>
+
               {role === 'Admin' && (
                 <Button size="sm" onClick={handleAdd} className="w-full sm:w-auto hidden md:inline-flex shadow-sm">
                    + Add Transaction
@@ -120,23 +171,64 @@ export const TransactionTable = () => {
           </div>
         </div>
 
-      <div className="overflow-x-auto w-full">
-        <table className="w-full text-left text-sm whitespace-nowrap">
+      <div className="overflow-x-auto w-full min-h-[50vh]">
+        <table className="w-full text-left text-base whitespace-nowrap">
           <thead className="bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md text-zinc-500 dark:text-zinc-400 border-b border-zinc-200 dark:border-zinc-800 sticky top-0 z-10 transition-colors">
             <tr>
-              <th className="px-6 py-4 font-medium pl-8">Transaction</th>
-              <th className="px-6 py-4 font-medium cursor-pointer hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors" onClick={() => { setSortField('date'); setSortOrder(s => s === 'asc' ? 'desc' : 'asc') }}>
-                <span className="flex items-center gap-1">Date {sortField === 'date' && (sortOrder === 'desc' ? '↓' : '↑')}</span>
+              <th className="px-6 py-5 font-medium pl-8">{isGrouped ? 'Category' : 'Transaction'}</th>
+              {!isGrouped && (
+                <th className="px-6 py-5 font-medium cursor-pointer hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors" onClick={() => { setSortField('date'); setSortOrder(s => s === 'asc' ? 'desc' : 'asc') }}>
+                  <span className="flex items-center gap-1">Date {sortField === 'date' && (sortOrder === 'desc' ? '↓' : '↑')}</span>
+                </th>
+              )}
+              <th className="px-6 py-5 font-medium cursor-pointer hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors" onClick={() => { setSortField('amount'); setSortOrder(s => s === 'asc' ? 'desc' : 'asc') }}>
+                <span className="flex items-center gap-1">{isGrouped ? 'Total Amount' : 'Amount'} {sortField === 'amount' && (sortOrder === 'desc' ? '↓' : '↑')}</span>
               </th>
-              <th className="px-6 py-4 font-medium cursor-pointer hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors" onClick={() => { setSortField('amount'); setSortOrder(s => s === 'asc' ? 'desc' : 'asc') }}>
-                <span className="flex items-center gap-1">Amount {sortField === 'amount' && (sortOrder === 'desc' ? '↓' : '↑')}</span>
-              </th>
-              <th className="px-6 py-4 font-medium pr-8">Actions</th>
+              {!isGrouped && <th className="px-6 py-5 font-medium pr-8">Actions</th>}
+              {isGrouped && <th className="px-6 py-5 font-medium pr-8">Transactions</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50 bg-white dark:bg-zinc-900/30">
-            <AnimatePresence>
-              {filteredTransactions.length > 0 ? (
+            <AnimatePresence mode="wait">
+              {isLoading ? (
+                <TableSkeleton key="skeleton" />
+              ) : isGrouped ? (
+                groupedData.length > 0 ? (
+                  groupedData.map((group) => (
+                    <motion.tr
+                      layout
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      key={group.category}
+                      className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition-colors group"
+                    >
+                      <td className="px-6 py-5 pl-8">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-3 rounded-xl border ${group.type === 'income' ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-500 border-green-200 dark:border-green-500/20' : 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-500 border-red-200 dark:border-red-500/20'}`}>
+                            {getCategoryIcon(group.category)}
+                          </div>
+                          <span className="font-medium text-lg text-zinc-900 dark:text-zinc-100">{group.category}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5">
+                        <Badge variant={group.type === 'income' ? 'success' : 'danger'} className="inline-flex items-center gap-1 w-fit text-sm py-1 px-3">
+                          $ {group.amount.toLocaleString()}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-5 pr-8 text-zinc-500 dark:text-zinc-400 text-base">
+                        {group.count} item{group.count !== 1 ? 's' : ''}
+                      </td>
+                    </motion.tr>
+                  ))
+                ) : (
+                  <motion.tr initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="empty-group">
+                    <td colSpan={3} className="px-6 py-16 text-center text-zinc-500">
+                       <p className="text-zinc-600 dark:text-zinc-400 font-medium">No categories found</p>
+                    </td>
+                  </motion.tr>
+                )
+              ) : filteredTransactions.length > 0 ? (
                 filteredTransactions.map((tx) => (
                   <motion.tr
                     layout
@@ -146,27 +238,27 @@ export const TransactionTable = () => {
                     key={tx.id}
                     className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition-colors group"
                   >
-                    <td className="px-6 py-4 pl-8">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2.5 rounded-xl border ${tx.type === 'income' ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-500 border-green-200 dark:border-green-500/20' : 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-500 border-red-200 dark:border-red-500/20'}`}>
+                    <td className="px-6 py-5 pl-8">
+                      <div className="flex items-center gap-4">
+                        <div className={`p-3 rounded-xl border ${tx.type === 'income' ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-500 border-green-200 dark:border-green-500/20' : 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-500 border-red-200 dark:border-red-500/20'}`}>
                           {getCategoryIcon(tx.category)}
                         </div>
                         <div>
-                          <p className="font-medium text-zinc-900 dark:text-zinc-100">{tx.description}</p>
-                          <p className="text-xs text-zinc-500 mt-0.5">{tx.category}</p>
+                          <p className="font-medium text-lg text-zinc-900 dark:text-zinc-100">{tx.description}</p>
+                          <p className="text-sm text-zinc-500 mt-0.5">{tx.category}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-zinc-500 dark:text-zinc-400">
+                    <td className="px-6 py-5 text-zinc-500 dark:text-zinc-400">
                       {format(parseISO(tx.date), 'MMM dd, yyyy')}
                     </td>
-                    <td className="px-6 py-4">
-                      <Badge variant={tx.type === 'income' ? 'success' : 'danger'} className="inline-flex items-center gap-1 w-fit">
-                        {tx.type === 'income' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                        ${tx.amount.toLocaleString()}
+                    <td className="px-6 py-5">
+                      <Badge variant={tx.type === 'income' ? 'success' : 'danger'} className="inline-flex items-center gap-1 w-fit text-sm py-1 px-3">
+                        {tx.type === 'income' ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                        $ {tx.amount.toLocaleString()}
                       </Badge>
                     </td>
-                    <td className="px-6 py-4 pr-8">
+                    <td className="px-6 py-5 pr-8">
                       <div className="flex items-center gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                         {role === 'Admin' ? (
                           <>
@@ -194,7 +286,7 @@ export const TransactionTable = () => {
                   </motion.tr>
                 ))
               ) : (
-                <motion.tr initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <motion.tr initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="empty">
                   <td colSpan={4} className="px-6 py-16 text-center text-zinc-500">
                     <div className="flex flex-col items-center justify-center">
                        <Search className="w-10 h-10 mb-3 text-zinc-300 dark:text-zinc-700" />

@@ -89,4 +89,4 @@ Visit `http://localhost:5173` to view the application.
 - Containerize the frontend with Docker for CI/CD.
 
 ---
-*Built with ❤️ Akshay*
+*Built with ❤️ by Akshay*
